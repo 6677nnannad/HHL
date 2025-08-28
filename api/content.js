@@ -1,5 +1,5 @@
 // 内容获取API
-async function handler(req, res) {
+module.exports = async (req, res) => {
   // 设置CORS头部
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
@@ -36,7 +36,7 @@ async function handler(req, res) {
       error: '获取内容失败: ' + error.message
     });
   }
-}
+};
 
 // 从GitHub获取图片
 async function getImagesFromGitHub() {
@@ -151,6 +151,3 @@ async function getTextsFromGitHub() {
     return [];
   }
 }
-
-// 确保正确的导出
-export default handler;
