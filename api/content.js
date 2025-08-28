@@ -1,4 +1,5 @@
-export default async function handler(req, res) {
+// 内容获取API
+async function handler(req, res) {
   // 设置CORS头部
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
@@ -55,7 +56,8 @@ async function getImagesFromGitHub() {
     });
 
     if (!response.ok) {
-      throw new Error(`GitHub API错误: ${response.status}`);
+      console.log('获取图片API响应:', response.status, response.statusText);
+      return [];
     }
 
     const files = await response.json();
@@ -101,7 +103,8 @@ async function getTextsFromGitHub() {
     });
 
     if (!response.ok) {
-      throw new Error(`GitHub API错误: ${response.status}`);
+      console.log('获取文本API响应:', response.status, response.statusText);
+      return [];
     }
 
     const files = await response.json();
@@ -148,3 +151,6 @@ async function getTextsFromGitHub() {
     return [];
   }
 }
+
+// 确保正确的导出
+export default handler;
