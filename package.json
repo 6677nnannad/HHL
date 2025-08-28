@@ -1,7 +1,7 @@
 {
-  "name": "hhl-image-server",
+  "name": "hhl-content-server",
   "version": "1.0.0",
-  "description": "图片上传服务 for HHL",
+  "description": "内容上传服务 for HHL - 支持图片和文本",
   "scripts": {
     "dev": "vercel dev"
   },
