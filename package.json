@@ -1,0 +1,12 @@
+{
+  "name": "hhl-image-server",
+  "version": "1.0.0",
+  "description": "图片上传服务 for HHL",
+  "scripts": {
+    "dev": "vercel dev"
+  },
+  "dependencies": {},
+  "engines": {
+    "node": ">=18.x"
+  }
+}
