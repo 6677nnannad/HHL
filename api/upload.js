@@ -1,4 +1,5 @@
-export default async function handler(req, res) {
+// 图片和文本上传API
+async function handler(req, res) {
   // 设置CORS头部
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -180,3 +181,6 @@ async function uploadImageToGitHub(imageData, originalName) {
     };
   }
 }
+
+// 确保正确的导出
+export default handler;
