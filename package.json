@@ -1,13 +1,11 @@
 {
   "name": "hhl-content-server",
   "version": "1.0.0",
-  "description": "内容上传服务 for HHL - 支持图片和文本",
+  "description": "内容上传服务 for HHL",
   "scripts": {
     "dev": "vercel dev"
   },
-  "dependencies": {
-    "node-fetch": "^2.6.7"
-  },
+  "dependencies": {},
   "engines": {
     "node": ">=18.x"
   }
