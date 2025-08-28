@@ -2,23 +2,23 @@
   "version": 2,
   "builds": [
     {
-      "src": "api/upload.js",
+      "src": "api/save-content.js",
       "use": "@vercel/node"
     },
     {
-      "src": "api/content.js",
+      "src": "api/get-content.js",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
-      "src": "/api/upload",
-      "dest": "/api/upload.js",
+      "src": "/api/save-content",
+      "dest": "/api/save-content.js",
       "methods": ["POST", "OPTIONS"]
     },
     {
-      "src": "/api/content",
-      "dest": "/api/content.js",
+      "src": "/api/get-content",
+      "dest": "/api/get-content.js",
       "methods": ["GET", "OPTIONS"]
     }
   ]
