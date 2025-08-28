@@ -1,5 +1,5 @@
-// 图片和文本上传API
-async function handler(req, res) {
+// 简化版上传接口
+module.exports = async (req, res) => {
   // 设置CORS头部
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -14,7 +14,12 @@ async function handler(req, res) {
   }
 
   try {
-    const { text, image, filename = 'content' } = req.body;
+    // 解析请求体
+    let body = '';
+    for await (const chunk of req) {
+      body += chunk.toString();
+    }
+    const { text, image, filename = 'content' } = JSON.parse(body);
 
     // 检查是否有内容
     if (!text && !image) {
@@ -63,7 +68,7 @@ async function handler(req, res) {
       error: '服务器错误: ' + error.message
     });
   }
-}
+};
 
 // 上传文本到GitHub
 async function uploadTextToGitHub(content, originalName) {
@@ -181,6 +186,3 @@ async function uploadImageToGitHub(imageData, originalName) {
     };
   }
 }
-
-// 确保正确的导出
-export default handler;
