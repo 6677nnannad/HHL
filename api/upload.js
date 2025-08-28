@@ -1,4 +1,3 @@
-
 export default async function handler(req, res) {
   // 设置CORS头部
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -14,45 +13,47 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { image, filename = 'image' } = req.body;
+    const { text, image, filename = 'content' } = req.body;
 
-    if (!image) {
-      return res.status(400).json({ error: '没有接收到图片数据', success: false });
-    }
-
-    // 检查base64图片格式
-    const matches = image.match(/^data:image\/(\w+);base64,(.+)$/);
-    if (!matches) {
-      return res.status(400).json({ error: '无效的图片格式', success: false });
-    }
-
-    const imageType = matches[1];
-    const base64Data = matches[2];
-    
-    // 生成唯一文件名
-    const timestamp = Date.now();
-    const randomStr = Math.random().toString(36).substring(2, 8);
-    const finalFilename = `${timestamp}-${randomStr}.${imageType}`;
-    
-    // 指定GitHub路径
-    const githubPath = `img/${finalFilename}`;
-
-    // 上传到GitHub
-    const uploadResult = await uploadToGitHub(githubPath, base64Data, filename);
-
-    if (uploadResult.success) {
-      res.status(200).json({
-        success: true,
-        message: '图片上传成功',
-        imageUrl: uploadResult.imageUrl,
-        filename: finalFilename
-      });
-    } else {
-      res.status(500).json({
-        success: false,
-        error: uploadResult.error
+    // 检查是否有内容
+    if (!text && !image) {
+      return res.status(400).json({ 
+        error: '没有接收到文本或图片数据', 
+        success: false 
       });
     }
+
+    let result = {};
+
+    // 处理文本上传
+    if (text) {
+      const textResult = await uploadTextToGitHub(text, filename);
+      if (!textResult.success) {
+        return res.status(500).json({
+          success: false,
+          error: '文本上传失败: ' + textResult.error
+        });
+      }
+      result.text = textResult;
+    }
+
+    // 处理图片上传
+    if (image) {
+      const imageResult = await uploadImageToGitHub(image, filename);
+      if (!imageResult.success) {
+        return res.status(500).json({
+          success: false,
+          error: '图片上传失败: ' + imageResult.error
+        });
+      }
+      result.image = imageResult;
+    }
+
+    res.status(200).json({
+      success: true,
+      message: '内容上传成功',
+      data: result
+    });
 
   } catch (error) {
     console.error('上传错误:', error);
@@ -63,13 +64,86 @@ export default async function handler(req, res) {
   }
 }
 
-async function uploadToGitHub(path, content, originalName) {
+// 上传文本到GitHub
+async function uploadTextToGitHub(content, originalName) {
   try {
     const GITHUB_OWNER = '6677nnannad';
     const GITHUB_REPO = 'HHL';
     const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 
-    const apiUrl = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${path}`;
+    // 生成唯一文件名
+    const timestamp = Date.now();
+    const randomStr = Math.random().toString(36).substring(2, 8);
+    const fileName = `${timestamp}-${randomStr}.txt`;
+    const githubPath = `Wenan/${fileName}`;
+
+    const apiUrl = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${githubPath}`;
+
+    // 将文本内容转换为base64
+    const base64Content = Buffer.from(content).toString('base64');
+
+    const response = await fetch(apiUrl, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${GITHUB_TOKEN}`,
+        'Content-Type': 'application/json',
+        'User-Agent': 'HHL-Text-Server'
+      },
+      body: JSON.stringify({
+        message: `上传文本: ${originalName}`,
+        content: base64Content,
+        branch: 'main'
+      })
+    });
+
+    const result = await response.json();
+
+    if (response.ok) {
+      return {
+        success: true,
+        textUrl: `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/main/${githubPath}`,
+        fileName: fileName
+      };
+    } else {
+      return { 
+        success: false, 
+        error: result.message || 'GitHub API错误' 
+      };
+    }
+  } catch (error) {
+    return { 
+      success: false, 
+      error: error.message 
+    };
+  }
+}
+
+// 上传图片到GitHub
+async function uploadImageToGitHub(imageData, originalName) {
+  try {
+    const GITHUB_OWNER = '6677nnannad';
+    const GITHUB_REPO = 'HHL';
+    const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+
+    // 检查base64图片格式并提取数据
+    const matches = imageData.match(/^data:image\/(\w+);base64,(.+)$/);
+    if (!matches) {
+      return { 
+        success: false, 
+        error: '无效的图片格式' 
+      };
+    }
+
+    const imageType = matches[1];
+    const base64Data = matches[2];
+    
+    // 生成唯一文件名
+    const timestamp = Date.now();
+    const randomStr = Math.random().toString(36).substring(2, 8);
+    const fileName = `${timestamp}-${randomStr}.${imageType}`;
+    const githubPath = `img/${fileName}`;
+
+    const apiUrl = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${githubPath}`;
 
     const response = await fetch(apiUrl, {
       method: 'PUT',
@@ -80,7 +154,7 @@ async function uploadToGitHub(path, content, originalName) {
       },
       body: JSON.stringify({
         message: `上传图片: ${originalName}`,
-        content: content,
+        content: base64Data,
         branch: 'main'
       })
     });
@@ -90,7 +164,8 @@ async function uploadToGitHub(path, content, originalName) {
     if (response.ok) {
       return {
         success: true,
-        imageUrl: `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/main/${path}`
+        imageUrl: `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/main/${githubPath}`,
+        fileName: fileName
       };
     } else {
       return { 
